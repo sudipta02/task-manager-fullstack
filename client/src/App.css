@@ -1,0 +1,80 @@
+#root {
+  /* max-width: 1280px; */
+  /* margin: 0 auto; */
+  padding: 1rem;
+  /* background-color: #f3f2f6; */
+  height: 100vh;
+}
+.sidemenu {
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+.logo {
+  font-family: "Dancing Script", cursive;
+  font-size: 30px;
+}
+
+.logo-menu {
+  font-family: "Dancing Script", cursive;
+  font-size: 40px;
+}
+
+.navbar {
+  /* background-color: #ffffff; */
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #d0aaaa;
+}
+
+.catch-line {
+  font-family: "Quicksand", sans-serif;
+  font-size: 40px;
+  font-weight: bold;
+  border-right: 1px solid #d53867;
+}
+
+.catch-line-mobile {
+  font-family: "Quicksand", sans-serif;
+  font-size: 30px;
+  font-weight: bold;
+}
+
+body {
+  background: url("../src/assets/layered-waves-haikei.svg");
+  background-size: cover;
+  background-attachment: fixed;
+  margin-bottom: 20px;
+}
+
+.drawer-menu {
+  background: url("../src/assets/layered-waves-haikei.svg");
+  transform: rotate(180deg);
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+.task-container {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.task-card {
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #d0aaaa;
+}
+
+.task-card:hover {
+  border: 2px solid #a88080;
+}
+
+.trash-icon:hover {
+  color: red;
+}
+
+.page-not-found-msg {
+  font-family: 'Inter';
+}
