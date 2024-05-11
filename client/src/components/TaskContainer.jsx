@@ -134,9 +134,12 @@ function Task({ title, description, createdOn }) {
 
 const CreateTaskSchema = z.object({
   title: z.string().min(1, "Task is required").min(3, "3 characters minimum"),
-  // todos: z.array(),
-  // .min(1, "Add at least 1 todo.")
-  // .max(10, "Cannot add >10 todos."),
+  todos: z
+    .array(
+      z.object({ todo: z.string().min(1, "Minimum 1 character required") })
+    )
+    .min(1, "Add at least 1 todo.")
+    .max(10, "Cannot add >10 todos."),
   status: z.string({ required_error: "Please select one status" }),
   important: z.string({ required_error: "Select important or not" }),
 });
@@ -275,51 +278,53 @@ function CreateTask() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="todos"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Todos</FormLabel>
-                      {controlledFields.map((field, index) => {
-                        return (
-                          <section
-                            key={field.id}
-                            className="flex items-center gap-2"
-                          >
-                            <Checkbox disabled />
-                            <Input
-                              value={field.todo}
-                              placeholder="Add your todo"
-                              {...form.register(`todos.${index}.todo`, {
-                                required: true,
-                              })}
-                            />
-                            <Button
-                              variant="secondary"
-                              onClick={() => remove(index)}
-                            >
-                              <XCircle size={20} color="#be4343" />
-                            </Button>
-                          </section>
-                        );
-                      })}
-                      <FormControl>
-                        <Button
-                          variant="secondary"
-                          onClick={() => {
-                            append({
-                              todo: "todo",
-                            });
-                          }}
-                        >
-                          <PlusCircle />
-                        </Button>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <FormLabel>Todos</FormLabel>
+                <FormMessage />
+                {controlledFields.map(({ id, todo }, index) => {
+                  return (
+                    <section key={id}>
+                      <FormField
+                        control={form.control}
+                        name={`todos.${index}.todo`}
+                        render={({ field }) => (
+                          <div>
+                            <FormItem className="flex items-center gap-2">
+                              <Checkbox disabled />
+                              <Input
+                                value={field.todo}
+                                placeholder="Add your todo"
+                                {...field}
+                                // {...form.register(`todos.${index}.todo`, {
+                                //   required: true,
+                                // })}
+                              />
+                              <Button
+                                disabled={index == 0}
+                                variant="secondary"
+                                onClick={() => remove(index)}
+                              >
+                                <XCircle size={20} color="#be4343" />
+                              </Button>
+                            </FormItem>
+                            <FormMessage />
+                          </div>
+                        )}
+                      />
+                    </section>
+                  );
+                })}
+                <FormControl>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      append({
+                        todo: "",
+                      });
+                    }}
+                  >
+                    <PlusCircle />
+                  </Button>
+                </FormControl>
                 <FormField
                   control={form.control}
                   name="important"
