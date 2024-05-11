@@ -9,10 +9,13 @@ import {
 import {
   BellPlus,
   CheckCircle,
+  CircleFadingPlus,
   Pencil,
+  PlusCircle,
   PlusSquare,
   Star,
   Trash,
+  XCircle,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import {
@@ -38,7 +41,7 @@ import {
 } from "@/components/ui/select";
 import { IMPORTANT, STATUSES } from "@/constants";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import {
   Form,
@@ -51,6 +54,7 @@ import {
 import toast from "react-hot-toast";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Checkbox } from "./ui/checkbox";
 
 function useTasks() {
   return useQuery({
@@ -130,10 +134,9 @@ function Task({ title, description, createdOn }) {
 
 const CreateTaskSchema = z.object({
   title: z.string().min(1, "Task is required").min(3, "3 characters minimum"),
-  description: z
-    .string()
-    .min(1, "Description is required")
-    .min(3, "3 characters minimum"),
+  // todos: z.array(),
+  // .min(1, "Add at least 1 todo.")
+  // .max(10, "Cannot add >10 todos."),
   status: z.string({ required_error: "Please select one status" }),
   important: z.string({ required_error: "Select important or not" }),
 });
@@ -142,18 +145,38 @@ function CreateTask() {
   const [openDialog, setOpenDialog] = useState(false);
   const { TODO, INPROGRESS, DONE } = STATUSES;
   const { YES, NO } = IMPORTANT;
+
   const form = useForm({
     resolver: zodResolver(CreateTaskSchema),
     defaultValues: {
       title: "",
-      description: "",
+      todos: [{ todo: "" }],
     },
+  });
+
+  const control = form.control;
+  const watch = form.watch;
+
+  const { fields, append, remove } = useFieldArray({
+    name: "todos",
+    control,
+    rules: {
+      required: "Pleasseeee",
+    },
+  });
+
+  const watchFieldArray = watch("todos");
+  const controlledFields = fields.map((field, index) => {
+    return {
+      ...field,
+      ...watchFieldArray[index],
+    };
   });
 
   const queryClient = useQueryClient();
 
   const createTaskMutation = useMutation({
-    mutationFn: ({requestBody, token}) => {
+    mutationFn: ({ requestBody, token }) => {
       return fetch(`http://localhost:3000/tasks`, {
         method: "POST",
         headers: {
@@ -165,51 +188,55 @@ function CreateTask() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
   });
 
-  const onSubmit = (values, e) => {
-    e.preventDefault();
-    toast.loading("Waiting...");
-    const { title, description, status, important } = values;
-    const date = new Date();
-    const createdOn = date.toISOString();
-    const token = localStorage.getItem("token");
-    const requestBody = {
-      title,
-      description,
-      status,
-      important,
-      createdOn,
-    };
-    const { isError, isSuccess, error } = createTaskMutation;
-    try {
-      createTaskMutation.mutate({requestBody, token});
-
-      if (isError) {
-        toast.dismiss();
-        toast.error(error.message);
-      }
-      if (isSuccess) {
-        toast.dismiss();
-        toast.success("Task created !");
-      }
-    } catch (err) {
-      toast.dismiss();
-      if (!err?.response) {
-        toast.error("No Server Response");
-      } else if (err.response?.status === 400) {
-        toast.error("Missing Username or Password");
-      } else if (err.response?.status === 401) {
-        toast.error("Unauthorized");
-      } else {
-        toast.error("Login Failed");
-      }
-    }
-    setOpenDialog(false);
-    form.reset();
+  const onSubmit = (values) => {
+    console.log(values);
   };
+
+  // const onSubmit = (values, e) => {
+  //   e.preventDefault();
+  //   toast.loading("Waiting...");
+  //   const { title, description, status, important } = values;
+  //   const date = new Date();
+  //   const createdOn = date.toISOString();
+  //   const token = localStorage.getItem("token");
+  //   const requestBody = {
+  //     title,
+  //     description,
+  //     status,
+  //     important,
+  //     createdOn,
+  //   };
+  //   const { isError, isSuccess, error } = createTaskMutation;
+  //   try {
+  //     createTaskMutation.mutate({ requestBody, token });
+
+  //     if (isError) {
+  //       toast.dismiss();
+  //       toast.error(error.message);
+  //     }
+  //     if (isSuccess) {
+  //       toast.dismiss();
+  //       toast.success("Task created !");
+  //     }
+  //   } catch (err) {
+  //     toast.dismiss();
+  //     if (!err?.response) {
+  //       toast.error("No Server Response");
+  //     } else if (err.response?.status === 400) {
+  //       toast.error("Missing Username or Password");
+  //     } else if (err.response?.status === 401) {
+  //       toast.error("Unauthorized");
+  //     } else {
+  //       toast.error("Login Failed");
+  //     }
+  //   }
+  //   setOpenDialog(false);
+  //   form.reset();
+  // };
 
   return (
     <div className="task-card rounded-lg opacity-70">
@@ -250,15 +277,44 @@ function CreateTask() {
                 />
                 <FormField
                   control={form.control}
-                  name="description"
+                  name="todos"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description</FormLabel>
+                      <FormLabel>Todos</FormLabel>
+                      {controlledFields.map((field, index) => {
+                        return (
+                          <section
+                            key={field.id}
+                            className="flex items-center gap-2"
+                          >
+                            <Checkbox disabled />
+                            <Input
+                              value={field.todo}
+                              placeholder="Add your todo"
+                              {...form.register(`todos.${index}.todo`, {
+                                required: true,
+                              })}
+                            />
+                            <Button
+                              variant="secondary"
+                              onClick={() => remove(index)}
+                            >
+                              <XCircle size={20} color="#be4343" />
+                            </Button>
+                          </section>
+                        );
+                      })}
                       <FormControl>
-                        <Textarea
-                          placeholder="Describe your task here"
-                          {...field}
-                        />
+                        <Button
+                          variant="secondary"
+                          onClick={() => {
+                            append({
+                              todo: "todo",
+                            });
+                          }}
+                        >
+                          <PlusCircle />
+                        </Button>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
